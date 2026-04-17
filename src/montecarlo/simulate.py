@@ -9,11 +9,19 @@ from dataclasses import dataclass
 
 @dataclass
 class EuropeanOption:
-    S0: float = 100.0  # Initial stock price
-    K: float = 105.0   # Strike price
-    T: float = 1.0     # Time to maturity (in years)
-    r: float = 0.05    # Risk-free interest rate
-    sigma: float = 0.2 # Volatility of the underlying asset
+    """Class to represent a European call option and its parameters.
+     Attributes:
+        S0: Initial stock price [USD]
+        K: Strike price [USD]
+        T: Time to maturity [Y]
+        r: Constant, risk-free rate [%] (Continuously compounded i.e., no dividends.)
+        sigma: Volatility of the underlying [%]
+    """
+    S0: float = 100.0
+    K: float = 105.0 
+    T: float = 1.0
+    r: float = 0.05
+    sigma: float = 0.2
 
     @property
     def d1(self):
