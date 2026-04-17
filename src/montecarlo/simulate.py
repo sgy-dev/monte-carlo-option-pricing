@@ -43,3 +43,17 @@ class MonteCarloSimulator:
         self.dt: np.ndarray = self.option.T / self.num_t_steps
         self.t: np.ndarray = np.linspace(0, self.option.T, self.num_t_steps + 1)
         self.results: np.ndarray = np.empty((self.num_paths, self.num_t_steps + 1), dtype=np.float64)
+
+    def calculate_St(self) -> None:
+        raise(NotImplementedError)
+    
+    def run_simulations(self) -> None:
+        raise(NotImplementedError)
+    
+    def calculate_avg(self) -> None:
+        raise(NotImplementedError)
+    
+    def plot_simulations(self) -> None:
+        raise(NotImplementedError)
+    
+    
