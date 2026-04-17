@@ -18,7 +18,7 @@ class EuropeanOption:
         sigma: Volatility of the underlying [%]
     """
     S0: float = 100.0
-    K: float = 105.0 
+    K: float = 105.0
     T: float = 1.0
     r: float = 0.05
     sigma: float = 0.2
@@ -34,10 +34,16 @@ class EuropeanOption:
 
 @dataclass
 class MonteCarloSimulator:
+    """Class to perform Monte Carlo simulations for European option pricing.
+    Attributes:
+        option: An instance of the EuropeanOption class containing option parameters.
+        num_t_steps: Number of time steps to simulate (default: 250 for average number of trading days in a year).
+        num_paths: Number of Monte Carlo paths to simulate (default: 1,000).
+    """
 
-    option: EuropeanOption  # Option parameters
-    num_t_steps: int = 250  # Avg number of trading days in a year
-    num_paths: int = 1_000  # Number of Monte Carlo paths to simulate
+    option: EuropeanOption 
+    num_t_steps: int = 250
+    num_paths: int = 1_000
 
     def __post_init__(self):
         self.dt: np.ndarray = self.option.T / self.num_t_steps
