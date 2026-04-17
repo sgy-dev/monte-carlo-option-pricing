@@ -3,6 +3,7 @@
 
 import numpy as np
 import numpy.random as npr
+from tqdm import trange
 
 from dataclasses import dataclass
 
@@ -47,10 +48,10 @@ class MonteCarloSimulator:
 
     def __post_init__(self):
         self.dt: np.ndarray = self.option.T / self.num_t_steps
-        self.t: np.ndarray = np.linspace(0, self.option.T, self.num_t_steps + 1)
-        self.results: np.ndarray = np.empty((self.num_paths, self.num_t_steps + 1), dtype=np.float64)
+        self.t: np.ndarray = np.linspace(0, self.option.T, self.num_t_steps)
+        self.results: np.ndarray = np.empty((self.num_paths, self.num_t_steps), dtype=np.float64)
 
-    def calculate_St(self) -> None:
+    def calculate_St(self) -> np.ndarray:
         """Calculate the stock price paths using the geometric Brownian motion model using 'num_t_steps' number of time steps.
         The stock price at time t is given by:
             S(t) = S0 exp((r - ½σ²)t + σWt)
@@ -63,7 +64,12 @@ class MonteCarloSimulator:
         return self.option.S0 * np.exp((self.option.r - 0.5 * self.option.sigma ** 2) * self.t + self.option.sigma * Wt) 
     
     def run_simulations(self) -> None:
-        raise(NotImplementedError)
+        """Run the Monte Carlo simulations to generate stock price paths.
+        This method populates the 'results' attribute with the simulated stock price paths.
+        Each row in 'results' corresponds to a single simulation path, and each column corresponds to a time step.
+        """
+        for i in trange(self.num_paths, desc="Running Monte Carlo simulations"):
+            self.results[i, :] = self.calculate_St()
     
     def calculate_avg(self) -> None:
         raise(NotImplementedError)
