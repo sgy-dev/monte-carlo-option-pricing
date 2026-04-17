@@ -51,7 +51,16 @@ class MonteCarloSimulator:
         self.results: np.ndarray = np.empty((self.num_paths, self.num_t_steps + 1), dtype=np.float64)
 
     def calculate_St(self) -> None:
-        raise(NotImplementedError)
+        """Calculate the stock price paths using the geometric Brownian motion model using 'num_t_steps' number of time steps.
+        The stock price at time t is given by:
+            S(t) = S0 exp((r - ½σ²)t + σWt)
+        where Wt is a Wiener process (Brownian motion) with mean 0 and variance dt.
+        We simulate Wt using the cumulative sum of normally distributed random variables.
+        Note: This method should be called before running simulations to ensure that the stock price paths are calculated.
+        """
+        # Normal distribution, N(mean=0, var=dt)
+        Wt: np.ndarray = np.cumsum(npr.normal(0, np.sqrt(self.dt), self.num_t_steps))
+        return self.option.S0 * np.exp((self.option.r - 0.5 * self.option.sigma ** 2) * self.t + self.option.sigma * Wt) 
     
     def run_simulations(self) -> None:
         raise(NotImplementedError)
