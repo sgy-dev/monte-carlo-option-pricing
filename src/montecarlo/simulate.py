@@ -81,20 +81,39 @@ class MonteCarloSimulator:
         self.avg_path = np.mean(self.results, axis=0)
     
     def plot_simulations(self) -> None:
-        """Plot the simulated stock price paths and the average path.
-        This method uses Matplotlib to visualize the results of the Monte Carlo simulations.
-        It plots all individual simulation paths in light gray and the average path in red.
-        """
+        """Plotting functions to show the simulated Monte Carlo paths and the resulting probability distribution."""
 
-        plt.figure(figsize=(12, 6))
-        for i in range(self.num_paths):
-            plt.plot(self.t, self.results[i, :], color='lightgray', alpha=0.5)
-        plt.plot(self.t, self.avg_path, color='red', label='Average Path', linewidth=2)
-        plt.title('Monte Carlo Simulations of Stock Price Paths')
-        plt.xlabel('Time (Years)')
-        plt.ylabel('Stock Price (USD)')
-        plt.legend()
-        plt.grid()
-        plt.show()
-    
-    
+        # --- Create a figure with two subplots: one for the paths and one for the histogram ---
+        fig, (ax_paths, ax_hist) = plt.subplots(
+            1, 2,
+            figsize=(12, 6),
+            sharey=True,
+            gridspec_kw={
+                "width_ratios": [3, 1],
+                "wspace": 0.05}
+            )
+
+        # --- Plot the simulated paths ---
+        for i in trange(self.num_paths, desc="Plotting Monte Carlo paths"):
+            ax_paths.plot(self.t, self.results[i, :], color="lightgray", alpha=0.6)
+        
+        if self.num_paths > 1:    
+            ax_paths.plot(self.t, self.avg_path, color="b", label="Average Path", linewidth=2)
+        
+        ax_paths.axhline(self.option.K, color="k", linestyle="--")
+        ax_paths.set_title(
+            f"Monte Carlo: Spot = \\${self.option.S0:.2f}, "
+            + f"r = {self.option.r*100:.1f}%, "
+            + f"σ = {self.option.sigma*100:.1f}%"
+        )
+        ax_paths.set_xlim(0, self.option.T)
+        ax_paths.set_xlabel("Time, $t$ [Years]")
+        ax_paths.set_ylabel("Stock Price, $S(t)$ [USD]")
+        ax_paths.legend(loc="upper left")
+
+        # --- Plot the histogram of final stock prices ---
+        ax_hist.hist(self.results[:, -1], bins=200, orientation="horizontal", color="lightgray", density=True)
+        ax_hist.axhline(self.option.K, color="k", linestyle="--", label=f"Strike = \\${self.option.K:.2f}")
+        ax_hist.set_xlabel("Price Distribution")
+        ax_hist.legend(loc="upper right")
+
