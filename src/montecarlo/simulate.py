@@ -50,6 +50,7 @@ class MonteCarloSimulator:
         self.dt: np.ndarray = self.option.T / self.num_t_steps
         self.t: np.ndarray = np.linspace(0, self.option.T, self.num_t_steps)
         self.results: np.ndarray = np.empty((self.num_paths, self.num_t_steps), dtype=np.float64)
+        self.avg_path: np.ndarray = np.empty(self.num_t_steps, dtype=np.float64)
 
     def calculate_St(self) -> np.ndarray:
         """Calculate the stock price paths using the geometric Brownian motion model using 'num_t_steps' number of time steps.
@@ -70,9 +71,13 @@ class MonteCarloSimulator:
         """
         for i in trange(self.num_paths, desc="Running Monte Carlo simulations"):
             self.results[i, :] = self.calculate_St()
+        self.calculate_avg()
     
     def calculate_avg(self) -> None:
-        raise(NotImplementedError)
+        """Calculate the average stock price at each time step across all simulation paths.
+        This method returns a 1D array containing the average stock price at each time step.
+        """
+        self.avg_path = np.mean(self.results, axis=0)
     
     def plot_simulations(self) -> None:
         raise(NotImplementedError)
