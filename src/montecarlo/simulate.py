@@ -3,6 +3,7 @@
 
 import numpy as np
 import numpy.random as npr
+import matplotlib.pyplot as plt
 from tqdm import trange
 
 from dataclasses import dataclass
@@ -80,6 +81,20 @@ class MonteCarloSimulator:
         self.avg_path = np.mean(self.results, axis=0)
     
     def plot_simulations(self) -> None:
-        raise(NotImplementedError)
+        """Plot the simulated stock price paths and the average path.
+        This method uses Matplotlib to visualize the results of the Monte Carlo simulations.
+        It plots all individual simulation paths in light gray and the average path in red.
+        """
+
+        plt.figure(figsize=(12, 6))
+        for i in range(self.num_paths):
+            plt.plot(self.t, self.results[i, :], color='lightgray', alpha=0.5)
+        plt.plot(self.t, self.avg_path, color='red', label='Average Path', linewidth=2)
+        plt.title('Monte Carlo Simulations of Stock Price Paths')
+        plt.xlabel('Time (Years)')
+        plt.ylabel('Stock Price (USD)')
+        plt.legend()
+        plt.grid()
+        plt.show()
     
     
