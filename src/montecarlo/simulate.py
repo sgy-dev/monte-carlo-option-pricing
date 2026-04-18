@@ -4,7 +4,7 @@
 import numpy as np
 import numpy.random as npr
 import matplotlib.pyplot as plt
-from tqdm import trange
+from tqdm import tqdm, trange
 
 from dataclasses import dataclass
 
@@ -98,17 +98,20 @@ class MonteCarloSimulator:
         abv_clr, blw_clr = "green", "red"
         colours = np.where(ends_above_avg, abv_clr, blw_clr)
 
-        # Plot each path with a color based on whether it ends above or below the average path
+        # Plot each path with a color based on whether it ends above or below the average path.
         for i in trange(self.num_paths, desc="Plotting Monte Carlo paths"):
             ax_paths.plot(self.t, self.results[i, :], color=colours[i], linewidth=0.5, alpha=0.5)
         ax_paths.plot([], [] , color=abv_clr, label=r"Paths ends $\bf{above}$ avg. final price")
         ax_paths.plot([], [] , color=blw_clr, label=r"Paths ends $\bf{below}$ avg. final price")
 
-        # Plot the average path if there are multiple paths
+        # Plot the average path if there are multiple paths.
         if self.num_paths > 1:    
             ax_paths.plot(self.t, self.avg_path, color="b", linewidth=2, label=f"Avg. path, $E[S(t=T)]$ = \\${self.avg_path[-1]:.2f}")
         
+        # Plot the strike price as a horizontal dashed line.
         ax_paths.axhline(self.option.K, color="k", linestyle="--", linewidth=2)
+        
+        # labels, title, legend etc.
         ax_paths.set_title(
             f"Monte Carlo: Spot = \\${self.option.S0:.2f}, "
             + f"r = {self.option.r*100:.1f}%, "
@@ -120,8 +123,22 @@ class MonteCarloSimulator:
         ax_paths.legend(loc="upper left")
 
         # --- Plot the histogram of final stock prices ---
-        ax_hist.hist(self.results[:, -1], bins=200, orientation="horizontal", color="lightgray", density=True)
+        num_bins = 200 if 200 < round(self.num_paths / 10) else round(self.num_paths / 10)
+        ax_hist.hist(self.results[:, -1], bins=num_bins, orientation="horizontal", color="lightgray", density=True)
         ax_hist.axhline(self.option.K, color="k", linestyle="--", linewidth=2, label=f"Strike = \\${self.option.K:.2f}")
-        ax_hist.set_xlabel("Price Distribution")
-        ax_hist.legend(loc="upper right")
+        
+        # Color the histogram bins based on whether they are above or below the strike price.
+        for patch in tqdm(ax_hist.patches, desc="Plotting histogram bins"):
+            bin_center = patch.get_y() + patch.get_height() / 2
+            patch.set_facecolor(abv_clr if bin_center > self.option.K else blw_clr)
+            patch.set_label("Above strike" if bin_center > self.option.K else "Below strike")
+
+        # Limits, labels etc.
+        ax_hist.set_ylim(ax_paths.get_ylim())  # Match y axis limits.        
+        ax_hist.set_xlabel("Price Distribution (Normalised)")
+
+        # Create legend for the histogram.
+        handles, labels = ax_hist.get_legend_handles_labels()
+        by_label = dict(zip(labels, handles))
+        ax_hist.legend(by_label.values(), by_label.keys(), loc="upper right")
 
