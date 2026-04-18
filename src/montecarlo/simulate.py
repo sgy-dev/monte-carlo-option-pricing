@@ -90,17 +90,25 @@ class MonteCarloSimulator:
             sharey=True,
             gridspec_kw={
                 "width_ratios": [3, 1],
-                "wspace": 0.05}
+                "wspace": 0.1}
             )
 
         # --- Plot the simulated paths ---
+        ends_above_avg: bool = self.results[:, -1] > self.avg_path[-1]
+        abv_clr, blw_clr = "green", "red"
+        colours = np.where(ends_above_avg, abv_clr, blw_clr)
+
+        # Plot each path with a color based on whether it ends above or below the average path
         for i in trange(self.num_paths, desc="Plotting Monte Carlo paths"):
-            ax_paths.plot(self.t, self.results[i, :], color="lightgray", alpha=0.6)
-        
+            ax_paths.plot(self.t, self.results[i, :], color=colours[i], linewidth=0.5, alpha=0.5)
+        ax_paths.plot([], [] , color=abv_clr, label=r"Paths ends $\bf{above}$ avg. final price")
+        ax_paths.plot([], [] , color=blw_clr, label=r"Paths ends $\bf{below}$ avg. final price")
+
+        # Plot the average path if there are multiple paths
         if self.num_paths > 1:    
-            ax_paths.plot(self.t, self.avg_path, color="b", label="Average Path", linewidth=2)
+            ax_paths.plot(self.t, self.avg_path, color="b", linewidth=2, label=f"Avg. path, $E[S(t=T)]$ = \\${self.avg_path[-1]:.2f}")
         
-        ax_paths.axhline(self.option.K, color="k", linestyle="--")
+        ax_paths.axhline(self.option.K, color="k", linestyle="--", linewidth=2)
         ax_paths.set_title(
             f"Monte Carlo: Spot = \\${self.option.S0:.2f}, "
             + f"r = {self.option.r*100:.1f}%, "
@@ -108,12 +116,12 @@ class MonteCarloSimulator:
         )
         ax_paths.set_xlim(0, self.option.T)
         ax_paths.set_xlabel("Time, $t$ [Years]")
-        ax_paths.set_ylabel("Stock Price, $S(t)$ [USD]")
+        ax_paths.set_ylabel("Stock Price, $S(t)$ [\\$]")
         ax_paths.legend(loc="upper left")
 
         # --- Plot the histogram of final stock prices ---
         ax_hist.hist(self.results[:, -1], bins=200, orientation="horizontal", color="lightgray", density=True)
-        ax_hist.axhline(self.option.K, color="k", linestyle="--", label=f"Strike = \\${self.option.K:.2f}")
+        ax_hist.axhline(self.option.K, color="k", linestyle="--", linewidth=2, label=f"Strike = \\${self.option.K:.2f}")
         ax_hist.set_xlabel("Price Distribution")
         ax_hist.legend(loc="upper right")
 
