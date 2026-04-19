@@ -100,16 +100,16 @@ class MonteCarloSimulator:
 
         # Plot each path with a color based on whether it ends above or below the average path.
         for i in trange(self.num_paths, desc="Plotting Monte Carlo paths"):
-            ax_paths.plot(self.t, self.results[i, :], color=colours[i], linewidth=0.5, alpha=0.5)
+            ax_paths.plot(self.t, self.results[i, :], color=colours[i], lw=0.5, alpha=0.5)
         ax_paths.plot([], [] , color=abv_clr, label=r"Paths ends $\bf{above}$ avg. final price")
         ax_paths.plot([], [] , color=blw_clr, label=r"Paths ends $\bf{below}$ avg. final price")
 
         # Plot the average path if there are multiple paths.
         if self.num_paths > 1:    
-            ax_paths.plot(self.t, self.avg_path, color="b", linewidth=2, label=f"Avg. path, $E[S(t=T)]$ = \\${self.avg_path[-1]:.2f}")
+            ax_paths.plot(self.t, self.avg_path, color="b", lw=2, label=f"Avg. path, $E[S(t=T)]$ = \\${self.avg_path[-1]:.2f}")
         
         # Plot the strike price as a horizontal dashed line.
-        ax_paths.axhline(self.option.K, color="k", linestyle="--", linewidth=2)
+        ax_paths.axhline(self.option.K, color="k", linestyle="--", lw=2)
         
         # labels, title, legend etc.
         ax_paths.set_title(
@@ -125,7 +125,7 @@ class MonteCarloSimulator:
         # --- Plot the histogram of final stock prices ---
         num_bins = 200 if 200 < round(self.num_paths / 10) else round(self.num_paths / 10)
         ax_hist.hist(self.results[:, -1], bins=num_bins, orientation="horizontal", color="lightgray", density=True)
-        ax_hist.axhline(self.option.K, color="k", linestyle="--", linewidth=2, label=f"Strike = \\${self.option.K:.2f}")
+        ax_hist.axhline(self.option.K, color="k", linestyle="--", lw=2, label=f"Strike = \\${self.option.K:.2f}")
         
         # Color the histogram bins based on whether they are above or below the strike price.
         for patch in tqdm(ax_hist.patches, desc="Plotting histogram bins"):
