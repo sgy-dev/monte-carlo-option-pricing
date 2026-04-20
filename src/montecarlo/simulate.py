@@ -4,6 +4,7 @@
 import numpy as np
 import numpy.random as npr
 import matplotlib.pyplot as plt
+from matplotlib import animation
 from tqdm import tqdm, trange
 
 from dataclasses import dataclass
@@ -142,3 +143,117 @@ class MonteCarloSimulator:
         by_label = dict(zip(labels, handles))
         ax_hist.legend(by_label.values(), by_label.keys(), loc="upper right")
 
+    def animate_simulations(
+        self,
+        filename: str = "monte-carlo.gif",
+        interval: int = 100,
+        max_frames: int | None = None
+    ) -> None:
+        """Animate the paths being added and the histogram updating, then save as a GIF."""
+        if self.results is None or self.avg_path is None or self.num_paths == 0:
+            raise RuntimeError("Run run_simulations() before animating.")
+
+        frames = 500#max_frames or min(self.num_paths, 400)
+        
+        fig, (ax_paths, ax_hist) = plt.subplots(
+            1,
+            2,
+            figsize=(12, 6),
+            sharey=True,
+            gridspec_kw={"width_ratios": [3, 1], "wspace": 0.1},
+        )
+
+        def init():
+            
+            ax_paths.set_xlim(0, self.option.T)
+            ax_paths.set_xlabel("Time, $t$ [Years]")
+            ax_paths.set_ylabel("Stock Price, $S(t)$ [\\$]")
+            ax_paths.set_title(
+                f"Monte Carlo: Spot = \\${self.option.S0:.2f}, "
+                + f"r = {self.option.r*100:.1f}%, "
+                + f"σ = {self.option.sigma*100:.1f}%"
+            )
+
+            ax_hist.set_xlabel("Price Distribution (Normalised)")
+            ax_hist.set_ylim(ax_paths.get_ylim())
+            return []
+
+        def update(frame):
+            N = frame + 1
+            ax_paths.cla()
+            ax_hist.cla()
+
+            above_strike = self.results[:N, -1] >= self.option.K
+            colors = np.where(above_strike, "green", "red")
+
+            for i in range(N):
+                ax_paths.plot(
+                    self.t,
+                    self.results[i],
+                    color=colors[i],
+                    lw=0.7,
+                    alpha=0.6,
+                )
+
+            ax_paths.plot([], [] , color="green", label=r"Paths ends $\bf{above}$ strike price")
+            ax_paths.plot([], [] , color="red", label=r"Paths ends $\bf{below}$ strike price")
+            ax_paths.axhline(self.option.K, color="k", linestyle="--", lw=2)
+            ax_paths.set_xlim(0, self.option.T)
+            ax_paths.set_ylim(self.results.min() * 0.9, self.results.max() * 1.1)
+            ax_paths.set_xlabel("Time, $t$ [Years]")
+            ax_paths.set_ylabel("Stock Price, $S(t)$ [\\$]")
+            ax_paths.set_title(
+                f"Monte Carlo: Spot = \\${self.option.S0:.2f}, "
+                + f"r = {self.option.r*100:.1f}%, "
+                + f"σ = {self.option.sigma*100:.1f}%"
+            )
+            evolving_avg = np.mean(self.results[:N, :], axis=0)
+            ax_paths.plot(
+                self.t,
+                evolving_avg,
+                color="blue",
+                lw=2,
+                label=f"Avg. path, $E[S(t=T)]$ = \\${evolving_avg[-1]:.2f}"
+            )
+            ax_paths.legend(loc="upper left")
+
+            num_bins = 200 if 200 < round(self.num_paths / 10) else round(self.num_paths / 10)
+            final_prices = self.results[:N, -1]
+            _, bins_edge, patches = ax_hist.hist(
+                final_prices,
+                bins=num_bins,
+                orientation="horizontal",
+                color="lightgray",
+                density=True
+            )
+
+            bin_centers = 0.5 * (bins_edge[:-1] + bins_edge[1:])
+            for patch, center in zip(patches, bin_centers):
+                patch.set_facecolor("green" if center >= self.option.K else "red")
+
+            ax_hist.axhline(self.option.K, color="k", linestyle="--", lw=2)
+            ax_hist.set_ylim(ax_paths.get_ylim())
+            ax_hist.set_xlabel("Price Distribution (Normalised)")
+            ax_hist.legend(
+                [plt.Line2D([], [], color="green", lw=8),
+                 plt.Line2D([], [], color="red", lw=8),
+                 plt.Line2D([], [], color="k", linestyle="--", lw=2)],
+                ["Above strike", "Below strike", f"Strike = \\${self.option.K:.2f}"],
+                loc="upper right",
+            )
+
+            return ax_paths.lines + ax_hist.patches
+
+        ani = animation.FuncAnimation(
+            fig,
+            update,
+            frames=frames,
+            init_func=init,
+            interval=interval,
+            blit=False,
+            repeat=False,
+        )
+
+        writer = animation.PillowWriter(fps=1000 // interval)
+        ani.save(filename, writer=writer)
+        plt.close(fig)
