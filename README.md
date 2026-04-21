@@ -30,21 +30,21 @@ where
 
 By simulating many independent paths and observing the final asset prices, the method estimates the expected behavior of the option without solving the full analytic pricing formula.
 
-**Note:** It is common in quantitative mathematics to denote an underlying stock value $S$, as a function of time $t$, as $S_t$ instead of $S(t)$. This avoid multiple messy brackets as there are many variables with time-dependence.
+**Note:** It is common in quantitative mathematics to denote an underlying stock value $S$, as a function of time $t$, as $S_t$ instead of $S(t)$. This avoids multiple messy brackets as there are many variables with time-dependence.
 
 ## Running the Code
 
 If you wish to use or experiment with this project, `clone` it and install the package dependencies listed in the `pyproject.toml` file. Then run the notebook example from Python.
 
-To run test the simulator, run the `monte-carlo-example.ipynb` notebook. Or, you can create your own Python script and insert the following code snipped (feel free to change the example parameters suggested below):
+To test the simulator, run the `monte-carlo-example.ipynb` notebook. Or, you can create your own Python script and insert the following code snippet (feel free to change the example parameters suggested below):
 
 ```python
 from montecarlo.simulate import EuropeanOption, MonteCarloSimulator
 
 option = EuropeanOption(S0=100.0, K=105.0, T=1.0, r=0.05, sigma=0.2)
-simulator = MonteCarloSimulator(option=option, num_t_steps=250, num_paths=1_000)
-simulator.run_simulations()
-simulator.plot_simulations()
+mcs = MonteCarloSimulator(option=option, num_t_steps=250, num_paths=1_000)
+mcs.run_simulations()
+mcs.plot_simulations()
 ```
 
 ## Output
@@ -53,15 +53,14 @@ The simulation process is depicted in the animation below. The simulation produc
 
 1. All the simulated $S_t$ paths (for a given set of option parameters), along with a dashed line for the strike price $K$, and the average of all the paths in blue. The final value of all the averages paths gives the expected value of the underlying after time $T$, *i.e.,* $\mathbb{E}[S(t=T)]$.
 
-2. The second plot is a horizontal histogram plot of the probability distribution of the underlying paths (this is a log-normal distribution). The green bins show path prices that finished above the strike price and below the strike in red. 
+2. The second plot is a horizontal histogram plot of the probability distribution of the underlying paths (this is a log-normal distribution). The green bins show path prices that finished above the strike price, and the red bins show prices below the strike. 
 
-Whilst the code in the `main` branch produces a final, static image, there is an experimental `animate_simulations()` function on the `feat-animation-experiment` branch that is *not* thoroughly tested that can produce the animated .gif below.
+Whilst the code in the `main` branch produces a final, static image, there is an experimental `animate_simulations()` function on the `feat-animation-experiment` branch that is not thoroughly tested and can produce the animated .gif below.
 
 ![Monte Carlo Option Pricing Simulation](img/montecarlo.gif)
 
 ## References
 
-- Plotting style inspired by [ebrahimpichka, repo:mc-option-pricing
-](https://github.com/ebrahimpichka/mc-option-pricing).
+- Plotting style inspired by [ebrahimpichka/mc-option-pricing](https://github.com/ebrahimpichka/mc-option-pricing).
 
-- Theory and understanding from was helped using [Quant Start](https://www.quantstart.com/articles/).
+- Theory and understanding were informed by [Quant Start](https://www.quantstart.com/articles/).
